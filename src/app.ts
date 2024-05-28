@@ -1,5 +1,6 @@
 import express, { Application, NextFunction, Request, Response } from 'express';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 
 const app: Application = express();
 
@@ -11,11 +12,11 @@ import router from './apps/routes';
 import cookieParser from 'cookie-parser';
 
 // import { ApiError } from './errors/ApiError'
-
+app.use(bodyParser.json({ limit: '10mb' }));
 // cors use & cookieparse
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:3000', 'https://unitech-seven.vercel.app'],
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
     credentials: true, // Allow credentials (cookies, etc.)
   })

@@ -18,6 +18,39 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const config_1 = __importDefault(require("../../../config"));
 // ## Create a User Schema Model corresponding to the document interface.
 const userSchema = new mongoose_1.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    joinginDate: {
+        type: String,
+        required: true,
+    },
+    studentRoll: {
+        type: String,
+        required: true,
+    },
+    phone: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    institute: {
+        type: String,
+        required: true,
+    },
+    department: {
+        type: String,
+        required: true,
+    },
+    address: {
+        type: String,
+        required: true,
+    },
+    gender: {
+        type: String,
+        required: true,
+    },
     email: {
         type: String,
         required: true,
@@ -27,6 +60,9 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         select: 0,
+    },
+    ruler: {
+        type: String,
     },
 }, {
     timestamps: true,

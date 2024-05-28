@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const body_parser_1 = __importDefault(require("body-parser"));
 const app = (0, express_1.default)();
 //<------------------ All Router Import-------------->
 const globalErrorHandelar_1 = require("./apps/middlewares/globalErrorHandelar");
@@ -12,9 +13,10 @@ const http_status_1 = __importDefault(require("http-status"));
 const routes_1 = __importDefault(require("./apps/routes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 // import { ApiError } from './errors/ApiError'
+app.use(body_parser_1.default.json({ limit: '10mb' }));
 // cors use & cookieparse
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:3000', 'https://unitech-seven.vercel.app'],
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
     credentials: true, // Allow credentials (cookies, etc.)
 }));

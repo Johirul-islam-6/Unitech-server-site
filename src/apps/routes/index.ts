@@ -1,27 +1,48 @@
 /* eslint-disable no-undef */
 import express from 'express';
 import { UserRoutes } from '../modules/user/user.routes';
-import { EventRoutes } from '../modules/event/event.routes';
-import { BookingRoute } from '../modules/booking/event_booking.routes';
+import { skillCourseRoute } from '../modules/skill_courses/file.routes';
+import { NoiceRoutes } from '../modules/notice/file.routes';
+import { AcademicCourseRoute } from '../modules/academic_courses/file.routes';
+import { SemesterToperRoutes } from '../modules/toperlist/file.routes';
+import { PaymentRoute } from '../modules/paymentInfo/file.routes';
+import { siteViewRoutes } from '../modules/totalsiteview/siteView.routes';
+import { EnrollStudentRouter } from '../modules/enrollStudent/enroll_stunent.routes';
 
 const router = express.Router();
 
 const moduleRoutes = [
-  //## all user parent CRED route
+  {
+    path: '/siteView',
+    route: siteViewRoutes,
+  },
   {
     path: '/users',
     route: UserRoutes,
   },
-
-  //##all event CRED parent route
   {
-    path: '/event',
-    route: EventRoutes,
+    path: '/toper',
+    route: SemesterToperRoutes,
   },
-  //## event Booking CRED parent route
   {
-    path: '/event-booking',
-    route: BookingRoute,
+    path: '/payment',
+    route: PaymentRoute,
+  },
+  {
+    path: '/notice',
+    route: NoiceRoutes,
+  },
+  {
+    path: '/courses',
+    route: skillCourseRoute,
+  },
+  {
+    path: '/Academic-courses',
+    route: AcademicCourseRoute,
+  },
+  {
+    path: '/enroll',
+    route: EnrollStudentRouter,
   },
 ];
 

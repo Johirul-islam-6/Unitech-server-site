@@ -7,6 +7,39 @@ import config from '../../../config';
 
 const userSchema = new Schema<IUser>(
   {
+    name: {
+      type: String,
+      required: true,
+    },
+    joinginDate: {
+      type: String,
+      required: true,
+    },
+    studentRoll: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    institute: {
+      type: String,
+      required: true,
+    },
+    department: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    gender: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
@@ -16,6 +49,9 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       select: 0,
+    },
+    ruler: {
+      type: String,
     },
   },
   {

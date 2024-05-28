@@ -8,10 +8,18 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const createToken = (payload, secret, expireTime) => {
     return jsonwebtoken_1.default.sign(payload, secret, { expiresIn: expireTime });
 };
+//create forgotpass
+const createForgotPasswordToken = (payload, secret, expireTime) => {
+    return jsonwebtoken_1.default.sign(payload, secret, {
+        algorithm: 'HS256',
+        expiresIn: expireTime,
+    });
+};
 const verifiedToken = (token, secret) => {
     return jsonwebtoken_1.default.verify(token, secret);
 };
 exports.jwtHelpers = {
     createToken,
     verifiedToken,
+    createForgotPasswordToken,
 };

@@ -4,7 +4,7 @@ import { UserValidation } from './user.validation';
 import { CreateUserController } from './user.controller';
 
 const router = express.Router();
-// https://gdg.community.dev/gdg-dhaka/
+
 // ## this all user route
 //  created a user
 // get all user
@@ -22,6 +22,24 @@ router.post(
   CreateUserController.loginAuth
 );
 
+// 03. forgot password
+router.post('/forgotPass', CreateUserController.forgotPasswordController);
+// 03. Reset password
+router.post('/resetpassword', CreateUserController.resetPasswordSetController);
+
+// 03. costom roll
+router.patch(
+  '/:id',
+  validateRequest(UserValidation.updateRoll),
+  CreateUserController.updateRuler
+);
+
+router.delete('/:id', CreateUserController.Delete);
+
+// 03. student roll
+router.patch('/roll/:id', CreateUserController.updateRoll);
+
+router.get('/:id', CreateUserController.singelUser);
 router.get('/', CreateUserController.getUsers);
 
 export const UserRoutes = router;

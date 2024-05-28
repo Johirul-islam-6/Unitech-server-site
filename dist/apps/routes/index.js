@@ -6,24 +6,46 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable no-undef */
 const express_1 = __importDefault(require("express"));
 const user_routes_1 = require("../modules/user/user.routes");
-const event_routes_1 = require("../modules/event/event.routes");
-const event_booking_routes_1 = require("../modules/booking/event_booking.routes");
+const file_routes_1 = require("../modules/skill_courses/file.routes");
+const file_routes_2 = require("../modules/notice/file.routes");
+const file_routes_3 = require("../modules/academic_courses/file.routes");
+const file_routes_4 = require("../modules/toperlist/file.routes");
+const file_routes_5 = require("../modules/paymentInfo/file.routes");
+const siteView_routes_1 = require("../modules/totalsiteview/siteView.routes");
+const enroll_stunent_routes_1 = require("../modules/enrollStudent/enroll_stunent.routes");
 const router = express_1.default.Router();
 const moduleRoutes = [
-    //## all user parent CRED route
+    {
+        path: '/siteView',
+        route: siteView_routes_1.siteViewRoutes,
+    },
     {
         path: '/users',
         route: user_routes_1.UserRoutes,
     },
-    //##all event CRED parent route
     {
-        path: '/event',
-        route: event_routes_1.EventRoutes,
+        path: '/toper',
+        route: file_routes_4.SemesterToperRoutes,
     },
-    //## event Booking CRED parent route
     {
-        path: '/event-booking',
-        route: event_booking_routes_1.BookingRoute,
+        path: '/payment',
+        route: file_routes_5.PaymentRoute,
+    },
+    {
+        path: '/notice',
+        route: file_routes_2.NoiceRoutes,
+    },
+    {
+        path: '/courses',
+        route: file_routes_1.skillCourseRoute,
+    },
+    {
+        path: '/Academic-courses',
+        route: file_routes_3.AcademicCourseRoute,
+    },
+    {
+        path: '/enroll',
+        route: enroll_stunent_routes_1.EnrollStudentRouter,
     },
 ];
 moduleRoutes.forEach(route => router.use(route.path, route.route));
