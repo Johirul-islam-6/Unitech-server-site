@@ -16,7 +16,11 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 app.use(body_parser_1.default.json({ limit: '10mb' }));
 // cors use & cookieparse
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000', 'https://unitech-seven.vercel.app'],
+    origin: [
+        'http://localhost:3000',
+        'https://unitech-seven.vercel.app',
+        'https://unitechbangladesh.com',
+    ],
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
     credentials: true, // Allow credentials (cookies, etc.)
 }));

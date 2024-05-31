@@ -16,7 +16,11 @@ app.use(bodyParser.json({ limit: '10mb' }));
 // cors use & cookieparse
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://unitech-seven.vercel.app'],
+    origin: [
+      'http://localhost:3000',
+      'https://unitech-seven.vercel.app',
+      'https://unitechbangladesh.com',
+    ],
     methods: ['GET', 'POST', 'DELETE', 'PATCH'],
     credentials: true, // Allow credentials (cookies, etc.)
   })
