@@ -5,6 +5,7 @@ import { IPaginationOpton } from '../../../interfaces/pagination';
 import { eventSearchableFields } from './file.constant';
 import { CourseData, IEventFilters } from './file.interface';
 import { AcademicCourseModel } from './file.model';
+import { nodeCacsh } from '../../../app';
 
 // 01. create a event
 const createServices = async (
@@ -86,13 +87,50 @@ const eventQuerysServices = async (
 
 //03. singel details Event business logic
 const detailsServices = async (id: string): Promise<CourseData | null> => {
-  const singelEvent = await AcademicCourseModel.findById(id);
+  // const singelEvent = await AcademicCourseModel.findById(id);
 
-  if (!singelEvent) {
-    throw new Error('Faild to details Event');
+  const cachedValue = nodeCacsh.get<string>(id); // Use the id as the cache key
+  if (cachedValue) {
+    const cachedData = JSON.parse(cachedValue);
+    const currentTime = Date.now();
+    const expiryTime = cachedData.timestamp + 24 * 60 * 60 * 1000; // Assuming timestamp is in milliseconds and expiry is set to 1 day
+
+    if (currentTime < expiryTime) {
+      // Cache entry is still valid
+      return cachedData.data;
+    } else {
+      // Cache entry has expired, fetch data from source
+      const newData = await AcademicCourseModel.findById(id);
+
+      if (!newData) {
+        throw new Error('Failed to fetch details for the Courses');
+      }
+      // Update cache with the fetched item
+      const updatedCacheData = {
+        timestamp: Date.now(),
+        data: newData,
+      };
+      nodeCacsh.set(id, JSON.stringify(updatedCacheData));
+
+      return newData;
+    }
+  } else {
+    // Cache miss, fetch data from source
+    const newData = await AcademicCourseModel.findById(id);
+
+    if (!newData) {
+      throw new Error('Failed to fetch details for the Courses');
+    }
+
+    // Cache the fetched item
+    const cacheData = {
+      timestamp: Date.now(),
+      data: newData,
+    };
+    nodeCacsh.set(id, JSON.stringify(cacheData));
+
+    return newData;
   }
-
-  return singelEvent;
 };
 
 //04. singel details Event business logic

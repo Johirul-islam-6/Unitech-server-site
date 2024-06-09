@@ -18,10 +18,12 @@ const sendResponse_1 = require("../../../shared/sendResponse");
 const http_status_1 = __importDefault(require("http-status"));
 const file_model_1 = require("./file.model");
 const file_services_1 = require("./file.services");
+const app_1 = require("../../../app");
 //01.=======> created notice functionality <=======
 const createController = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
     const result = yield file_services_1.AllServicesFunction.createServices(data);
+    app_1.nodeCacsh.del('noticBoard');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -33,6 +35,7 @@ const createController = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(vo
 const DeleteEvent = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const result = yield file_model_1.NoticModels.deleteOne({ _id: id });
+    app_1.nodeCacsh.del('noticBoard');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -42,8 +45,16 @@ const DeleteEvent = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
 }));
 const allNotic = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sortConditions = { createdAt: 'desc' };
-    // get to the all data in mongoDb model/collection .
-    const result = yield file_model_1.NoticModels.find({}).sort(sortConditions);
+    //--------- get data load first -----------
+    let result;
+    const cachedValue = app_1.nodeCacsh.get('noticBoard');
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield file_model_1.NoticModels.find({}).sort(sortConditions);
+        app_1.nodeCacsh.set('noticBoard', JSON.stringify(result));
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

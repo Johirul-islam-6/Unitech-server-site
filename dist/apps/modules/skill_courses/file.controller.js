@@ -19,11 +19,28 @@ const sendResponse_1 = require("../../../shared/sendResponse");
 const http_status_1 = __importDefault(require("http-status"));
 const quaryPick_1 = require("../../../shared/quaryPick");
 const file_model_1 = require("./file.model");
+const app_1 = require("../../../app");
 //01. created an Event functionality
 const createCourse = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const eventdata = req.body;
-    // export (eventdata) to  event.services.ts file
     const result = yield file_services_1.courseServices.createServices(eventdata);
+    if (result) {
+        app_1.nodeCacsh.del('skillCourses');
+        const categoriesToDelete = [
+            'web-development',
+            'graphic-design',
+            'digital-marketing',
+            'video-editing',
+            'basic-computer',
+            'Autocad-basic/premium',
+            'autocad-3d',
+            'ux/ui-design',
+            'video',
+        ];
+        if (eventdata && categoriesToDelete.includes(eventdata.CCategory)) {
+            app_1.nodeCacsh.del(eventdata.CCategory);
+        }
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -45,6 +62,18 @@ const getAllQuerys = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0
     const pagintionField = ['page', 'limit', 'sortBy', 'sortOrder'];
     // querypick is costom funtcion
     const paginationOption = (0, quaryPick_1.queryPick)(req.query, pagintionField);
+    //--------- get data load first -----------
+    // let result: any;
+    // const cachedValue = nodeCacsh.get<string>('skillCourses');
+    // if (cachedValue !== undefined) {
+    //   result = JSON.parse(cachedValue);
+    // } else {
+    //   result = await courseServices.eventQuerysServices(
+    //     filtering,
+    //     paginationOption
+    //   );
+    //   nodeCacsh.set('skillCourses', JSON.stringify(result));
+    // }
     const result = yield file_services_1.courseServices.eventQuerysServices(filtering, paginationOption);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
@@ -70,6 +99,7 @@ const Edite = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 
     const id = req.params.id;
     const updateEventData = req.body;
     const result = yield file_services_1.courseServices.editeServices(id, updateEventData);
+    app_1.nodeCacsh.del('skillCourses');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -92,8 +122,24 @@ const PandingBook = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
 //06.  Delete a Event functionality
 const Delete = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const bookId = req.params.id;
+    const cetagoryC = req.body;
     const result = yield file_model_1.SkillCourseModel.deleteOne({ _id: bookId });
     if (result.deletedCount === 1) {
+        app_1.nodeCacsh.del('skillCourses');
+        const categoriesToDelete = [
+            'web-development',
+            'graphic-design',
+            'digital-marketing',
+            'video-editing',
+            'basic-computer',
+            'Autocad-basic/premium',
+            'autocad-3d',
+            'ux/ui-design',
+            'video',
+        ];
+        if (cetagoryC && categoriesToDelete.includes(cetagoryC.CCategory)) {
+            app_1.nodeCacsh.del(cetagoryC.CCategory);
+        }
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
             success: true,

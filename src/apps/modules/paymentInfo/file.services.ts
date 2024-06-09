@@ -5,6 +5,7 @@ import { IPaginationOpton } from '../../../interfaces/pagination';
 import { SearchableFields } from './file.constant';
 import { IEventFilters, PaymentInfoData } from './file.interface';
 import { PaymentInfoModel } from './file.model';
+import { nodeCacsh } from '../../../app';
 
 // 01. create a event
 const createServices = async (
@@ -40,7 +41,7 @@ const PaymentQuerysServices = async (
       })),
     });
   }
-
+  console.log(searchTerm, 'insite serar');
   //get all filtering condition data [multiputl field then we are apply map]
   if (Object.keys(filtersData).length) {
     andConditions.push({
@@ -65,14 +66,25 @@ const PaymentQuerysServices = async (
   const whereConditons =
     andConditions.length > 0 ? { $and: andConditions } : {};
 
-  // get to the all data in mongoDb model/collection .
-  const result = await PaymentInfoModel.find(whereConditons)
-    .sort(sortConditions)
-    .skip(skip)
-    .limit(limit);
+  //--------- get data load first -----------
+
+  const key = searchTerm?.toString() + '1' ?? 'defaultKey'; // Provide a default key if searchTerm is undefined
+
+  let result: any;
+  const cachedValue = nodeCacsh.get<string>(key);
+  if (cachedValue !== undefined) {
+    result = JSON.parse(cachedValue);
+  } else {
+    result = await PaymentInfoModel.find(whereConditons)
+      .sort(sortConditions)
+      .skip(skip)
+      .limit(limit);
+    nodeCacsh.set(key, JSON.stringify(result), 86400); // Set expiry time to one day (24 hours)
+  }
 
   //total modal/collection data length
-  const total = await PaymentInfoModel.countDocuments();
+  // const total = await PaymentInfoModel.countDocuments();
+  const total = 1;
 
   return {
     meta: {
@@ -86,13 +98,49 @@ const PaymentQuerysServices = async (
 
 //03. singel details Event business logic
 const detailsServices = async (id: string): Promise<PaymentInfoData | null> => {
-  const singelEvent = await PaymentInfoModel.findById(id);
+  // Use the id as the cache key
+  const cachedValue = nodeCacsh.get<string>(id);
+  if (cachedValue) {
+    const cachedData = JSON.parse(cachedValue);
+    const currentTime = Date.now();
+    const expiryTime = cachedData.timestamp + 3 * 24 * 60 * 60 * 1000; // Assuming timestamp is in milliseconds and expiry is set to 1 day
 
-  if (!singelEvent) {
-    throw new Error('Faild to details Event');
+    if (currentTime < expiryTime) {
+      // Cache entry is still valid
+      return cachedData.data;
+    } else {
+      // Cache entry has expired, fetch data from source
+      const newData = await PaymentInfoModel.findById(id);
+
+      if (!newData) {
+        throw new Error('Failed to fetch details for the Courses');
+      }
+      // Update cache with the fetched item
+      const updatedCacheData = {
+        timestamp: Date.now(),
+        data: newData,
+      };
+      nodeCacsh.set(id, JSON.stringify(updatedCacheData));
+
+      return newData;
+    }
+  } else {
+    // Cache miss, fetch data from source
+    const newData = await PaymentInfoModel.findById(id);
+
+    if (!newData) {
+      throw new Error('Failed to fetch details for the Courses');
+    }
+
+    // Cache the fetched item
+    const cacheData = {
+      timestamp: Date.now(),
+      data: newData,
+    };
+    nodeCacsh.set(id, JSON.stringify(cacheData));
+
+    return newData;
   }
-
-  return singelEvent;
 };
 
 //04. singel details Event business logic

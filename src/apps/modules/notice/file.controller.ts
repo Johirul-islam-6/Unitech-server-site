@@ -5,12 +5,13 @@ import httpStatus from 'http-status';
 import { NoticModels } from './file.model';
 import { AllServicesFunction } from './file.services';
 import { SortOrder } from 'mongoose';
+import { nodeCacsh } from '../../../app';
 
 //01.=======> created notice functionality <=======
 const createController = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
   const result = await AllServicesFunction.createServices(data);
-
+  nodeCacsh.del('noticBoard');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -24,7 +25,7 @@ const DeleteEvent = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
 
   const result = await NoticModels.deleteOne({ _id: id });
-
+  nodeCacsh.del('noticBoard');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -36,8 +37,15 @@ const DeleteEvent = catchAsync(async (req: Request, res: Response) => {
 const allNotic = catchAsync(async (req: Request, res: Response) => {
   const sortConditions: { [key: string]: SortOrder } = { createdAt: 'desc' };
 
-  // get to the all data in mongoDb model/collection .
-  const result = await NoticModels.find({}).sort(sortConditions);
+  //--------- get data load first -----------
+  let result: any;
+  const cachedValue = nodeCacsh.get<string>('noticBoard');
+  if (cachedValue !== undefined) {
+    result = JSON.parse(cachedValue);
+  } else {
+    result = await NoticModels.find({}).sort(sortConditions);
+    nodeCacsh.set('noticBoard', JSON.stringify(result));
+  }
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

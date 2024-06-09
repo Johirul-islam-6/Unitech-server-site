@@ -8,6 +8,7 @@ import {
   SearchableFields,
 } from './enroll_stunent.interface';
 import { EnrollStudent } from './enroll_stunent.modal';
+import { nodeCacsh } from '../../../app';
 
 // -----> single user created business logic------>
 const EnrollCreate = async (
@@ -122,16 +123,47 @@ const updateStatus = async (
 };
 
 const singelEnroll = async (id: string): Promise<IEnrollStudent | null> => {
-  const objectId = Types.ObjectId.createFromHexString(id);
+  const parsedObjectId = Types.ObjectId.createFromHexString(id);
+  const key = parsedObjectId.toString(); // Convert ObjectId to string
 
-  // Check if the user exists
-  const isExist = await EnrollStudent.findOne({ _id: objectId });
+  const cachedValue = nodeCacsh.get<string>(key); // Use the id as the cache key
 
-  if (!isExist) {
-    throw new Error("Enroll doesn't match Id");
+  if (cachedValue) {
+    const cachedData = JSON.parse(cachedValue);
+    const currentTime = Date.now();
+    const expiryTime = cachedData.timestamp + 24 * 60 * 60 * 1000; // Expiry time set to 1 day
+
+    if (currentTime < expiryTime) {
+      // Cache entry is still valid
+      return cachedData.data;
+    }
   }
 
-  return isExist;
+  // Cache miss or expired, fetch data from source
+  let newData: IEnrollStudent | null;
+
+  try {
+    newData = await EnrollStudent.findById(parsedObjectId);
+  } catch (error) {
+    // Handle error when fetching data from the source
+    console.error('Error fetching data from the source:', error);
+    throw new Error('Failed to fetch details for the Enrollments');
+  }
+
+  if (!newData) {
+    // Data not found in the source
+    throw new Error('Failed to fetch details for the Enrollments');
+  }
+
+  // Update cache with the fetched item
+  const updatedCacheData = {
+    timestamp: Date.now(),
+    data: newData,
+  };
+
+  nodeCacsh.set(key, JSON.stringify(updatedCacheData));
+
+  return newData;
 };
 
 export const EnrollServeices = {

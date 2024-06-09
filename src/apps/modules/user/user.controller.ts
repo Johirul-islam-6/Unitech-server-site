@@ -7,6 +7,7 @@ import { ISearchUser, IUser, IUserCreated, IUserLogin } from './user.interface';
 import config from '../../../config';
 import { queryPick } from '../../../shared/quaryPick';
 import { User } from './user.model';
+import { nodeCacsh } from '../../../app';
 
 //01. ==========> created an user functionality =========>
 const userCreated = catchAsync(async (req: Request, res: Response) => {
@@ -25,7 +26,7 @@ const userCreated = catchAsync(async (req: Request, res: Response) => {
     };
 
     res.cookie('refreshToken', refreshToken, cookiesOption);
-
+    nodeCacsh.del('profile');
     sendResponse<IUserCreated>(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -90,10 +91,15 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
   // querypick is costom funtcion
   const paginationOption = queryPick(req.query, pagintionField);
 
-  const result = await UserServices.getSearchingUser(
-    filtering,
-    paginationOption
-  );
+  //--------- get data load first -----------
+  let result: any;
+  const cachedValue = nodeCacsh.get<string>('profile');
+  if (cachedValue !== undefined) {
+    result = JSON.parse(cachedValue);
+  } else {
+    result = await UserServices.getSearchingUser(filtering, paginationOption);
+    nodeCacsh.set('profile', JSON.stringify(result));
+  }
 
   sendResponse<ISearchUser[]>(res, {
     statusCode: httpStatus.OK,
@@ -169,7 +175,7 @@ const Delete = catchAsync(async (req: Request, res: Response) => {
   const studentId = req.params.id;
 
   const result = await User.deleteOne({ _id: studentId });
-
+  nodeCacsh.del('profile');
   if (result.deletedCount === 1) {
     sendResponse(res, {
       statusCode: httpStatus.OK,

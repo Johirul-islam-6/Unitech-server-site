@@ -20,11 +20,13 @@ const enroll_stunent_service_1 = require("./enroll_stunent.service");
 // import { queryPick } from '../../../shared/quaryPick';
 const enroll_stunent_modal_1 = require("./enroll_stunent.modal");
 const quaryPick_1 = require("../../../shared/quaryPick");
+const app_1 = require("../../../app");
 //01. ==========> created A event Booking functionality =========>
 const createEnrollStudent = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const enrollInfo = req.body;
     // export (event data) event_booking.services.ts file
     const result = yield enroll_stunent_service_1.EnrollServeices.EnrollCreate(enrollInfo);
+    app_1.nodeCacsh.del('enrollStudent');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -54,7 +56,16 @@ const getAllEnrollQuerys = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(
     const pagintionField = ['page', 'limit', 'sortBy', 'sortOrder'];
     // querypick is costom funtcion
     const paginationOption = (0, quaryPick_1.queryPick)(req.query, pagintionField);
-    const result = yield enroll_stunent_service_1.EnrollServeices.EnrollQuerysServices(filtering, paginationOption);
+    //--------- get data load first -----------
+    let result;
+    const cachedValue = app_1.nodeCacsh.get('enrollStudent');
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield enroll_stunent_service_1.EnrollServeices.EnrollQuerysServices(filtering, paginationOption);
+        app_1.nodeCacsh.set('enrollStudent', JSON.stringify(result));
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -67,6 +78,7 @@ const getAllEnrollQuerys = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(
 const DeleteEnroll = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const Id = req.params.id;
     const result = yield enroll_stunent_modal_1.EnrollStudent.deleteOne({ _id: Id });
+    app_1.nodeCacsh.del('enrollStudent');
     if (result.deletedCount === 1) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
@@ -88,6 +100,7 @@ const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     const id = req.params.id;
     const data = req.body;
     const result = yield enroll_stunent_service_1.EnrollServeices.updateStatus(id, data.status);
+    app_1.nodeCacsh.del('enrollStudent');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

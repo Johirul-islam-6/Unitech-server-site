@@ -5,13 +5,14 @@ import { sendResponse } from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
 import { queryPick } from '../../../shared/quaryPick';
 import { AcademicCourseModel } from './file.model';
+import { nodeCacsh } from '../../../app';
 
 //01. created an Event functionality
 const createCourse = catchAsync(async (req: Request, res: Response) => {
   const eventdata = req.body;
   // export (eventdata) to  event.services.ts file
   const result = await courseServices.createServices(eventdata);
-
+  nodeCacsh.del('academicCourses');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -38,10 +39,17 @@ const getAllQuerys = catchAsync(async (req: Request, res: Response) => {
   // querypick is costom funtcion
   const paginationOption = queryPick(req.query, pagintionField);
 
-  const result = await courseServices.eventQuerysServices(
-    filtering,
-    paginationOption
-  );
+  let result: any;
+  const cachedValue = nodeCacsh.get<string>('academicCourses');
+  if (cachedValue !== undefined) {
+    result = JSON.parse(cachedValue);
+  } else {
+    result = await courseServices.eventQuerysServices(
+      filtering,
+      paginationOption
+    );
+    nodeCacsh.set('academicCourses', JSON.stringify(result));
+  }
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -72,12 +80,12 @@ const Edite = catchAsync(async (req: Request, res: Response) => {
   const updateEventData = req.body;
 
   const result = await courseServices.editeServices(id, updateEventData);
-
+  nodeCacsh.del('academicCourses');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     data: result,
-    message: 'Edited event successfully',
+    message: 'Edited Courses successfully',
   });
 });
 
@@ -91,7 +99,7 @@ const PandingBook = catchAsync(async (req: Request, res: Response) => {
     statusCode: httpStatus.OK,
     success: true,
     data: result,
-    message: 'Edited event successfully',
+    message: 'Edited Courses successfully',
   });
 });
 
@@ -100,19 +108,20 @@ const Delete = catchAsync(async (req: Request, res: Response) => {
   const bookId = req.params.id;
 
   const result = await AcademicCourseModel.deleteOne({ _id: bookId });
+  nodeCacsh.del('academicCourses');
 
   if (result.deletedCount === 1) {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       data: result,
-      message: 'Book deleted successfully',
+      message: 'Courses deleted successfully',
     });
   } else {
     sendResponse(res, {
       statusCode: httpStatus.NOT_FOUND,
       success: false,
-      message: 'Book not found',
+      message: 'Courses not found',
     });
   }
 });

@@ -18,10 +18,12 @@ const sendResponse_1 = require("../../../shared/sendResponse");
 const http_status_1 = __importDefault(require("http-status"));
 const file_services_1 = require("./file.services");
 const file_model_1 = require("./file.model");
+const app_1 = require("../../../app");
 //01.=======> created notice functionality <=======
 const createController = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
     const result = yield file_services_1.AllServicesFunction.createServices(data);
+    app_1.nodeCacsh.del('classToper');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -33,6 +35,8 @@ const createController = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(vo
 const DeleteEvent = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const result = yield file_model_1.SemesterToperModel.deleteOne({ _id: id });
+    // when i delete a person
+    app_1.nodeCacsh.del('classToper');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -42,7 +46,16 @@ const DeleteEvent = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
 }));
 //01.=======> get all searching notice functionality <=======
 const getAllQuerys = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield file_services_1.AllServicesFunction.GetAllServices();
+    //--------- get data load first -----------
+    let result;
+    const cachedValue = app_1.nodeCacsh.get('classToper');
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield file_services_1.AllServicesFunction.GetAllServices();
+        app_1.nodeCacsh.set('classToper', JSON.stringify(result));
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

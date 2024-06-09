@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { EnrollStudent } from './enroll_stunent.modal';
 import { IEnrollStudent } from './enroll_stunent.interface';
 import { queryPick } from '../../../shared/quaryPick';
+import { nodeCacsh } from '../../../app';
 
 //01. ==========> created A event Booking functionality =========>
 const createEnrollStudent = catchAsync(async (req: Request, res: Response) => {
@@ -14,7 +15,7 @@ const createEnrollStudent = catchAsync(async (req: Request, res: Response) => {
 
   // export (event data) event_booking.services.ts file
   const result = await EnrollServeices.EnrollCreate(enrollInfo);
-
+  nodeCacsh.del('enrollStudent');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -51,10 +52,18 @@ const getAllEnrollQuerys = catchAsync(async (req: Request, res: Response) => {
   // querypick is costom funtcion
   const paginationOption = queryPick(req.query, pagintionField);
 
-  const result = await EnrollServeices.EnrollQuerysServices(
-    filtering,
-    paginationOption
-  );
+  //--------- get data load first -----------
+  let result: any;
+  const cachedValue = nodeCacsh.get<string>('enrollStudent');
+  if (cachedValue !== undefined) {
+    result = JSON.parse(cachedValue);
+  } else {
+    result = await EnrollServeices.EnrollQuerysServices(
+      filtering,
+      paginationOption
+    );
+    nodeCacsh.set('enrollStudent', JSON.stringify(result));
+  }
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -70,7 +79,7 @@ const DeleteEnroll = catchAsync(async (req: Request, res: Response) => {
   const Id = req.params.id;
 
   const result = await EnrollStudent.deleteOne({ _id: Id });
-
+  nodeCacsh.del('enrollStudent');
   if (result.deletedCount === 1) {
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -92,7 +101,7 @@ const updateStatus = async (req: Request, res: Response) => {
   const id = req.params.id;
   const data = req.body;
   const result = await EnrollServeices.updateStatus(id, data.status);
-
+  nodeCacsh.del('enrollStudent');
   sendResponse<IEnrollStudent>(res, {
     statusCode: httpStatus.OK,
     success: true,

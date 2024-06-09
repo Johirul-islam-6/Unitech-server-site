@@ -24,6 +24,7 @@ exports.PaymentServices = void 0;
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const file_constant_1 = require("./file.constant");
 const file_model_1 = require("./file.model");
+const app_1 = require("../../../app");
 // 01. create a event
 const createServices = (data) => __awaiter(void 0, void 0, void 0, function* () {
     const createEvent = yield file_model_1.PaymentInfoModel.create(data);
@@ -34,6 +35,7 @@ const createServices = (data) => __awaiter(void 0, void 0, void 0, function* () 
 });
 // 02.get all event & query business logic
 const PaymentQuerysServices = (filtering, paginationOption) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { searchTerm } = filtering, filtersData = __rest(filtering, ["searchTerm"]);
     // there adConditions = [] condition base data display in side array
     const andConditions = [];
@@ -48,6 +50,7 @@ const PaymentQuerysServices = (filtering, paginationOption) => __awaiter(void 0,
             })),
         });
     }
+    console.log(searchTerm, 'insite serar');
     //get all filtering condition data [multiputl field then we are apply map]
     if (Object.keys(filtersData).length) {
         andConditions.push({
@@ -65,13 +68,23 @@ const PaymentQuerysServices = (filtering, paginationOption) => __awaiter(void 0,
     }
     // condition display data show
     const whereConditons = andConditions.length > 0 ? { $and: andConditions } : {};
-    // get to the all data in mongoDb model/collection .
-    const result = yield file_model_1.PaymentInfoModel.find(whereConditons)
-        .sort(sortConditions)
-        .skip(skip)
-        .limit(limit);
+    //--------- get data load first -----------
+    const key = (_a = (searchTerm === null || searchTerm === void 0 ? void 0 : searchTerm.toString()) + '1') !== null && _a !== void 0 ? _a : 'defaultKey'; // Provide a default key if searchTerm is undefined
+    let result;
+    const cachedValue = app_1.nodeCacsh.get(key);
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield file_model_1.PaymentInfoModel.find(whereConditons)
+            .sort(sortConditions)
+            .skip(skip)
+            .limit(limit);
+        app_1.nodeCacsh.set(key, JSON.stringify(result), 86400); // Set expiry time to one day (24 hours)
+    }
     //total modal/collection data length
-    const total = yield file_model_1.PaymentInfoModel.countDocuments();
+    // const total = await PaymentInfoModel.countDocuments();
+    const total = 1;
     return {
         meta: {
             page,
@@ -83,11 +96,45 @@ const PaymentQuerysServices = (filtering, paginationOption) => __awaiter(void 0,
 });
 //03. singel details Event business logic
 const detailsServices = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const singelEvent = yield file_model_1.PaymentInfoModel.findById(id);
-    if (!singelEvent) {
-        throw new Error('Faild to details Event');
+    // Use the id as the cache key
+    const cachedValue = app_1.nodeCacsh.get(id);
+    if (cachedValue) {
+        const cachedData = JSON.parse(cachedValue);
+        const currentTime = Date.now();
+        const expiryTime = cachedData.timestamp + 3 * 24 * 60 * 60 * 1000; // Assuming timestamp is in milliseconds and expiry is set to 1 day
+        if (currentTime < expiryTime) {
+            // Cache entry is still valid
+            return cachedData.data;
+        }
+        else {
+            // Cache entry has expired, fetch data from source
+            const newData = yield file_model_1.PaymentInfoModel.findById(id);
+            if (!newData) {
+                throw new Error('Failed to fetch details for the Courses');
+            }
+            // Update cache with the fetched item
+            const updatedCacheData = {
+                timestamp: Date.now(),
+                data: newData,
+            };
+            app_1.nodeCacsh.set(id, JSON.stringify(updatedCacheData));
+            return newData;
+        }
     }
-    return singelEvent;
+    else {
+        // Cache miss, fetch data from source
+        const newData = yield file_model_1.PaymentInfoModel.findById(id);
+        if (!newData) {
+            throw new Error('Failed to fetch details for the Courses');
+        }
+        // Cache the fetched item
+        const cacheData = {
+            timestamp: Date.now(),
+            data: newData,
+        };
+        app_1.nodeCacsh.set(id, JSON.stringify(cacheData));
+        return newData;
+    }
 });
 const editeServices = (id, updateEventData) => __awaiter(void 0, void 0, void 0, function* () {
     const updateEvent = yield file_model_1.PaymentInfoModel.findByIdAndUpdate(id, {

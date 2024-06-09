@@ -25,6 +25,7 @@ const mongoose_1 = require("mongoose");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const enroll_stunent_interface_1 = require("./enroll_stunent.interface");
 const enroll_stunent_modal_1 = require("./enroll_stunent.modal");
+const app_1 = require("../../../app");
 // -----> single user created business logic------>
 const EnrollCreate = (enrollInfo) => __awaiter(void 0, void 0, void 0, function* () {
     const { SEmail, CreateDate } = enrollInfo;
@@ -103,13 +104,39 @@ const updateStatus = (id, data) => __awaiter(void 0, void 0, void 0, function* (
     return result;
 });
 const singelEnroll = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const objectId = mongoose_1.Types.ObjectId.createFromHexString(id);
-    // Check if the user exists
-    const isExist = yield enroll_stunent_modal_1.EnrollStudent.findOne({ _id: objectId });
-    if (!isExist) {
-        throw new Error("Enroll doesn't match Id");
+    const parsedObjectId = mongoose_1.Types.ObjectId.createFromHexString(id);
+    const key = parsedObjectId.toString(); // Convert ObjectId to string
+    const cachedValue = app_1.nodeCacsh.get(key); // Use the id as the cache key
+    if (cachedValue) {
+        const cachedData = JSON.parse(cachedValue);
+        const currentTime = Date.now();
+        const expiryTime = cachedData.timestamp + 24 * 60 * 60 * 1000; // Expiry time set to 1 day
+        if (currentTime < expiryTime) {
+            // Cache entry is still valid
+            return cachedData.data;
+        }
     }
-    return isExist;
+    // Cache miss or expired, fetch data from source
+    let newData;
+    try {
+        newData = yield enroll_stunent_modal_1.EnrollStudent.findById(parsedObjectId);
+    }
+    catch (error) {
+        // Handle error when fetching data from the source
+        console.error('Error fetching data from the source:', error);
+        throw new Error('Failed to fetch details for the Enrollments');
+    }
+    if (!newData) {
+        // Data not found in the source
+        throw new Error('Failed to fetch details for the Enrollments');
+    }
+    // Update cache with the fetched item
+    const updatedCacheData = {
+        timestamp: Date.now(),
+        data: newData,
+    };
+    app_1.nodeCacsh.set(key, JSON.stringify(updatedCacheData));
+    return newData;
 });
 exports.EnrollServeices = {
     EnrollCreate,

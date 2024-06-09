@@ -10,6 +10,7 @@ import { globalErrorHandeler } from './apps/middlewares/globalErrorHandelar';
 import httpStatus from 'http-status';
 import router from './apps/routes';
 import cookieParser from 'cookie-parser';
+import NodeCache from 'node-cache';
 
 // import { ApiError } from './errors/ApiError'
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -26,6 +27,12 @@ app.use(
   })
 );
 app.use(cookieParser());
+//data base first data load
+
+// export const nodeCacsh = new NodeCache({
+//   stdTTL: 10,
+// });
+export const nodeCacsh = new NodeCache();
 
 // parser
 app.use(express.json());

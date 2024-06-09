@@ -31,6 +31,7 @@ const user_services_1 = require("./user.services");
 const config_1 = __importDefault(require("../../../config"));
 const quaryPick_1 = require("../../../shared/quaryPick");
 const user_model_1 = require("./user.model");
+const app_1 = require("../../../app");
 //01. ==========> created an user functionality =========>
 const userCreated = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.body;
@@ -45,6 +46,7 @@ const userCreated = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
             httpOnly: true,
         };
         res.cookie('refreshToken', refreshToken, cookiesOption);
+        app_1.nodeCacsh.del('profile');
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
             success: true,
@@ -101,7 +103,16 @@ const getUsers = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, vo
     const pagintionField = ['page', 'limit', 'sortBy', 'sortOrder'];
     // querypick is costom funtcion
     const paginationOption = (0, quaryPick_1.queryPick)(req.query, pagintionField);
-    const result = yield user_services_1.UserServices.getSearchingUser(filtering, paginationOption);
+    //--------- get data load first -----------
+    let result;
+    const cachedValue = app_1.nodeCacsh.get('profile');
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield user_services_1.UserServices.getSearchingUser(filtering, paginationOption);
+        app_1.nodeCacsh.set('profile', JSON.stringify(result));
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -165,6 +176,7 @@ const updateRoll = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, 
 const Delete = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const studentId = req.params.id;
     const result = yield user_model_1.User.deleteOne({ _id: studentId });
+    app_1.nodeCacsh.del('profile');
     if (result.deletedCount === 1) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,

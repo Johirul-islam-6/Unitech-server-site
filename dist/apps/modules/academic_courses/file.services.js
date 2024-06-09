@@ -25,6 +25,7 @@ const mongoose_1 = require("mongoose");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const file_constant_1 = require("./file.constant");
 const file_model_1 = require("./file.model");
+const app_1 = require("../../../app");
 // 01. create a event
 const createServices = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const createEvent = yield file_model_1.AcademicCourseModel.create(event);
@@ -84,11 +85,45 @@ const eventQuerysServices = (filtering, paginationOption) => __awaiter(void 0, v
 });
 //03. singel details Event business logic
 const detailsServices = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const singelEvent = yield file_model_1.AcademicCourseModel.findById(id);
-    if (!singelEvent) {
-        throw new Error('Faild to details Event');
+    // const singelEvent = await AcademicCourseModel.findById(id);
+    const cachedValue = app_1.nodeCacsh.get(id); // Use the id as the cache key
+    if (cachedValue) {
+        const cachedData = JSON.parse(cachedValue);
+        const currentTime = Date.now();
+        const expiryTime = cachedData.timestamp + 24 * 60 * 60 * 1000; // Assuming timestamp is in milliseconds and expiry is set to 1 day
+        if (currentTime < expiryTime) {
+            // Cache entry is still valid
+            return cachedData.data;
+        }
+        else {
+            // Cache entry has expired, fetch data from source
+            const newData = yield file_model_1.AcademicCourseModel.findById(id);
+            if (!newData) {
+                throw new Error('Failed to fetch details for the Courses');
+            }
+            // Update cache with the fetched item
+            const updatedCacheData = {
+                timestamp: Date.now(),
+                data: newData,
+            };
+            app_1.nodeCacsh.set(id, JSON.stringify(updatedCacheData));
+            return newData;
+        }
     }
-    return singelEvent;
+    else {
+        // Cache miss, fetch data from source
+        const newData = yield file_model_1.AcademicCourseModel.findById(id);
+        if (!newData) {
+            throw new Error('Failed to fetch details for the Courses');
+        }
+        // Cache the fetched item
+        const cacheData = {
+            timestamp: Date.now(),
+            data: newData,
+        };
+        app_1.nodeCacsh.set(id, JSON.stringify(cacheData));
+        return newData;
+    }
 });
 //04. singel details Event business logic
 const editeServices = (id, updateEventData) => __awaiter(void 0, void 0, void 0, function* () {

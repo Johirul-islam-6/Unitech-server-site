@@ -19,11 +19,13 @@ const sendResponse_1 = require("../../../shared/sendResponse");
 const http_status_1 = __importDefault(require("http-status"));
 const quaryPick_1 = require("../../../shared/quaryPick");
 const file_model_1 = require("./file.model");
+const app_1 = require("../../../app");
 //01. created an Event functionality
 const createCourse = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const eventdata = req.body;
     // export (eventdata) to  event.services.ts file
     const result = yield file_services_1.courseServices.createServices(eventdata);
+    app_1.nodeCacsh.del('academicCourses');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -45,7 +47,15 @@ const getAllQuerys = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0
     const pagintionField = ['page', 'limit', 'sortBy', 'sortOrder'];
     // querypick is costom funtcion
     const paginationOption = (0, quaryPick_1.queryPick)(req.query, pagintionField);
-    const result = yield file_services_1.courseServices.eventQuerysServices(filtering, paginationOption);
+    let result;
+    const cachedValue = app_1.nodeCacsh.get('academicCourses');
+    if (cachedValue !== undefined) {
+        result = JSON.parse(cachedValue);
+    }
+    else {
+        result = yield file_services_1.courseServices.eventQuerysServices(filtering, paginationOption);
+        app_1.nodeCacsh.set('academicCourses', JSON.stringify(result));
+    }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -70,11 +80,12 @@ const Edite = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 
     const id = req.params.id;
     const updateEventData = req.body;
     const result = yield file_services_1.courseServices.editeServices(id, updateEventData);
+    app_1.nodeCacsh.del('academicCourses');
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
         data: result,
-        message: 'Edited event successfully',
+        message: 'Edited Courses successfully',
     });
 }));
 //05.  pandingBook  Event functionality
@@ -86,26 +97,27 @@ const PandingBook = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
         statusCode: http_status_1.default.OK,
         success: true,
         data: result,
-        message: 'Edited event successfully',
+        message: 'Edited Courses successfully',
     });
 }));
 //06.  Delete a Event functionality
 const Delete = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const bookId = req.params.id;
     const result = yield file_model_1.AcademicCourseModel.deleteOne({ _id: bookId });
+    app_1.nodeCacsh.del('academicCourses');
     if (result.deletedCount === 1) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
             success: true,
             data: result,
-            message: 'Book deleted successfully',
+            message: 'Courses deleted successfully',
         });
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.NOT_FOUND,
             success: false,
-            message: 'Book not found',
+            message: 'Courses not found',
         });
     }
 }));

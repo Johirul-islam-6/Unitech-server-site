@@ -5,13 +5,32 @@ import { sendResponse } from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
 import { queryPick } from '../../../shared/quaryPick';
 import { SkillCourseModel } from './file.model';
+import { nodeCacsh } from '../../../app';
 
 //01. created an Event functionality
 const createCourse = catchAsync(async (req: Request, res: Response) => {
   const eventdata = req.body;
-  // export (eventdata) to  event.services.ts file
+
   const result = await courseServices.createServices(eventdata);
 
+  if (result) {
+    nodeCacsh.del('skillCourses');
+    const categoriesToDelete = [
+      'web-development',
+      'graphic-design',
+      'digital-marketing',
+      'video-editing',
+      'basic-computer',
+      'Autocad-basic/premium',
+      'autocad-3d',
+      'ux/ui-design',
+      'video',
+    ];
+
+    if (eventdata && categoriesToDelete.includes(eventdata.CCategory)) {
+      nodeCacsh.del(eventdata.CCategory);
+    }
+  }
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -38,6 +57,18 @@ const getAllQuerys = catchAsync(async (req: Request, res: Response) => {
   // querypick is costom funtcion
   const paginationOption = queryPick(req.query, pagintionField);
 
+  //--------- get data load first -----------
+  // let result: any;
+  // const cachedValue = nodeCacsh.get<string>('skillCourses');
+  // if (cachedValue !== undefined) {
+  //   result = JSON.parse(cachedValue);
+  // } else {
+  //   result = await courseServices.eventQuerysServices(
+  //     filtering,
+  //     paginationOption
+  //   );
+  //   nodeCacsh.set('skillCourses', JSON.stringify(result));
+  // }
   const result = await courseServices.eventQuerysServices(
     filtering,
     paginationOption
@@ -72,7 +103,7 @@ const Edite = catchAsync(async (req: Request, res: Response) => {
   const updateEventData = req.body;
 
   const result = await courseServices.editeServices(id, updateEventData);
-
+  nodeCacsh.del('skillCourses');
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -98,10 +129,29 @@ const PandingBook = catchAsync(async (req: Request, res: Response) => {
 //06.  Delete a Event functionality
 const Delete = catchAsync(async (req: Request, res: Response) => {
   const bookId = req.params.id;
+  const cetagoryC = req.body;
 
   const result = await SkillCourseModel.deleteOne({ _id: bookId });
 
   if (result.deletedCount === 1) {
+    nodeCacsh.del('skillCourses');
+
+    const categoriesToDelete = [
+      'web-development',
+      'graphic-design',
+      'digital-marketing',
+      'video-editing',
+      'basic-computer',
+      'Autocad-basic/premium',
+      'autocad-3d',
+      'ux/ui-design',
+      'video',
+    ];
+
+    if (cetagoryC && categoriesToDelete.includes(cetagoryC.CCategory)) {
+      nodeCacsh.del(cetagoryC.CCategory);
+    }
+
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
