@@ -37,7 +37,7 @@ const sendResetPass_1 = require("./sendResetPass");
 // ==============> all user business logic applies  this services page ================>
 // -----> single user created business logic------>
 const createdUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, name, phone, ruler, gender, studentRoll, institute, department, address, joinginDate, } = user;
+    const { email, name, phone, ruler, blodGroup, gender, studentRoll, institute, department, address, joinginDate, } = user;
     const createAuser = yield user_model_1.User.create(user);
     if (!createAuser) {
         throw new Error('Failed to Create A user');
@@ -47,15 +47,11 @@ const createdUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
     const accessToken = jwtHelpers_1.jwtHelpers.createToken({ email: user === null || user === void 0 ? void 0 : user.email }, config_1.default.jwt.secret, config_1.default.jwt.expires_in);
     // Generate refresh token
     const refreshToken = jwtHelpers_1.jwtHelpers.createToken({ email: user === null || user === void 0 ? void 0 : user.email }, config_1.default.jwt.secret, config_1.default.jwt.refresh_expires_in);
-    // Attach the tokens to the user object
-    // createAuser.accessToken = accessToken;
-    // createAuser.refreshToken = refreshToken;
-    // console.log(createAuser?.accessToken, "accesstoken")
-    // console.log(createAuser, "created")
     return {
         accessToken,
         refreshToken,
         email,
+        blodGroup,
         id,
         name,
         phone,
@@ -82,7 +78,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         throw new ApiError_1.ApiError(http_status_1.default.UNAUTHORIZED, 'Your Password incorrect', '');
     }
     const studentInfo = yield user_model_1.User.findOne({ email: email });
-    const { name, id, phone, ruler, gender, studentRoll, institute, department, address, joinginDate, } = studentInfo || {};
+    const { name, id, phone, ruler, gender, studentRoll, institute, department, address, blodGroup, joinginDate, } = studentInfo || {};
     // create accessToken Token
     const accessToken = jwtHelpers_1.jwtHelpers.createToken({ email: isUserExist.email }, config_1.default.jwt.secret, config_1.default.jwt.expires_in);
     // create refreshToken Token
@@ -91,6 +87,7 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         accessToken: accessToken !== null && accessToken !== void 0 ? accessToken : '',
         refreshToken: refreshToken !== null && refreshToken !== void 0 ? refreshToken : '',
         email,
+        blodGroup: blodGroup !== null && blodGroup !== void 0 ? blodGroup : '',
         id: id !== null && id !== void 0 ? id : '',
         name: name !== null && name !== void 0 ? name : '',
         phone: phone !== null && phone !== void 0 ? phone : '',
@@ -106,12 +103,12 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 // get Searching Student
 const getSearchingUser = (filtering, paginationOption) => __awaiter(void 0, void 0, void 0, function* () {
     const { searchTerm } = filtering, filtersData = __rest(filtering, ["searchTerm"]);
-    // this variable find database collection/ model querys
+    // Build the query conditions for the database
     const andConditions = [];
-    // This is Searching Condition
+    // Add search condition
     if (searchTerm) {
         andConditions.push({
-            $or: user_constant_1.userSearchableFields.map(field => ({
+            $or: user_constant_1.userSearchableFields === null || user_constant_1.userSearchableFields === void 0 ? void 0 : user_constant_1.userSearchableFields.map(field => ({
                 [field]: {
                     $regex: searchTerm,
                     $options: 'i',
@@ -119,7 +116,7 @@ const getSearchingUser = (filtering, paginationOption) => __awaiter(void 0, void
             })),
         });
     }
-    //This is Filering condition
+    // Add filtering conditions
     if (Object.keys(filtersData).length) {
         andConditions.push({
             $and: Object.entries(filtersData).map(([field, value]) => ({
@@ -127,22 +124,23 @@ const getSearchingUser = (filtering, paginationOption) => __awaiter(void 0, void
             })),
         });
     }
-    //This is Pagination sorting limit etc condition
+    // Destructure pagination options
     const { page, limit, skip, sortBy, sortOrder } = paginationHelper_1.HelperPagination.calculationPagination(paginationOption);
-    // sort conditions base get all data
+    // Define sort conditions
     const sortConditions = {};
     if (sortBy && sortOrder) {
         sortConditions[sortBy] = sortOrder;
     }
-    // condition display data show
-    const whereConditons = andConditions.length > 0 ? { $and: andConditions } : {};
-    // get to the all data in mongoDb model/collection .
-    const result = yield user_model_1.User.find(whereConditons)
+    // Combine all conditions
+    const whereConditions = andConditions.length > 0 ? { $and: andConditions } : {};
+    // Fetch the data from MongoDB
+    const result = yield user_model_1.User.find(whereConditions)
         .sort(sortConditions)
         .skip(skip)
         .limit(limit);
-    //total modal/collections Number count
+    // Count the total number of documents
     const total = yield user_model_1.User.countDocuments();
+    // Return the response with metadata and data
     return {
         meta: {
             page,

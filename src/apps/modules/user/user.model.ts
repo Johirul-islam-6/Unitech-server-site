@@ -19,6 +19,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
     },
+    blodGroup: {
+      type: String,
+      required: true,
+    },
     phone: {
       type: String,
       required: true,

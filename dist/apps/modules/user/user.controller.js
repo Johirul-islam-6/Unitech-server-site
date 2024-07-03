@@ -46,7 +46,6 @@ const userCreated = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
             httpOnly: true,
         };
         res.cookie('refreshToken', refreshToken, cookiesOption);
-        app_1.nodeCacsh.del('profile');
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
             success: true,
@@ -103,16 +102,7 @@ const getUsers = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, vo
     const pagintionField = ['page', 'limit', 'sortBy', 'sortOrder'];
     // querypick is costom funtcion
     const paginationOption = (0, quaryPick_1.queryPick)(req.query, pagintionField);
-    //--------- get data load first -----------
-    let result;
-    const cachedValue = app_1.nodeCacsh.get('profile');
-    if (cachedValue !== undefined) {
-        result = JSON.parse(cachedValue);
-    }
-    else {
-        result = yield user_services_1.UserServices.getSearchingUser(filtering, paginationOption);
-        app_1.nodeCacsh.set('profile', JSON.stringify(result));
-    }
+    const result = yield user_services_1.UserServices.getSearchingUser(filtering, paginationOption);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

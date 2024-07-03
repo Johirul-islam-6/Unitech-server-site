@@ -7,7 +7,7 @@ const createUserZodSchema = zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z
             .string({
-            required_error: 'full name is required',
+            required_error: ' name is required',
         })
             .min(3)
             .max(60),
@@ -16,19 +16,25 @@ const createUserZodSchema = zod_1.z.object({
         }),
         institute: zod_1.z
             .string({
-            required_error: 'full institute is required',
+            required_error: ' institute is required',
+        })
+            .min(1)
+            .max(150),
+        blodGroup: zod_1.z
+            .string({
+            required_error: 'blodGroup is required',
         })
             .min(1)
             .max(150),
         department: zod_1.z
             .string({
-            required_error: 'full department is required',
+            required_error: ' department is required',
         })
             .min(1)
             .max(120),
         address: zod_1.z
             .string({
-            required_error: 'full address is required',
+            required_error: ' address is required',
         })
             .min(3)
             .max(60),

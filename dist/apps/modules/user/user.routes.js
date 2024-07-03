@@ -14,6 +14,7 @@ const router = express_1.default.Router();
 // get all user
 //01. create a user
 router.post('/create-user', (0, validateRequest_1.validateRequest)(user_validation_1.UserValidation.createUserZodSchema), user_controller_1.CreateUserController.userCreated);
+router.get('/', user_controller_1.CreateUserController.getUsers);
 // 02. login a user email , password
 router.post('/login', (0, validateRequest_1.validateRequest)(user_validation_1.UserValidation.loginUserZodSchema), user_controller_1.CreateUserController.loginAuth);
 // 03. forgot password
@@ -26,5 +27,4 @@ router.delete('/:id', user_controller_1.CreateUserController.Delete);
 // 03. student roll
 router.patch('/roll/:id', user_controller_1.CreateUserController.updateRoll);
 router.get('/:id', user_controller_1.CreateUserController.singelUser);
-router.get('/', user_controller_1.CreateUserController.getUsers);
 exports.UserRoutes = router;

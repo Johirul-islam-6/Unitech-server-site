@@ -15,6 +15,8 @@ router.post(
   validateRequest(UserValidation.createUserZodSchema),
   CreateUserController.userCreated
 );
+router.get('/', CreateUserController.getUsers);
+
 // 02. login a user email , password
 router.post(
   '/login',
@@ -40,6 +42,5 @@ router.delete('/:id', CreateUserController.Delete);
 router.patch('/roll/:id', CreateUserController.updateRoll);
 
 router.get('/:id', CreateUserController.singelUser);
-router.get('/', CreateUserController.getUsers);
 
 export const UserRoutes = router;

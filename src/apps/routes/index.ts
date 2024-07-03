@@ -8,6 +8,8 @@ import { SemesterToperRoutes } from '../modules/toperlist/file.routes';
 import { PaymentRoute } from '../modules/paymentInfo/file.routes';
 import { siteViewRoutes } from '../modules/totalsiteview/siteView.routes';
 import { EnrollStudentRouter } from '../modules/enrollStudent/enroll_stunent.routes';
+import { ReviewRoutes } from '../modules/review/file.routes';
+import { AttachmentRoutes } from '../modules/attachmentBooking/file.routes';
 
 const router = express.Router();
 
@@ -19,6 +21,14 @@ const moduleRoutes = [
   {
     path: '/users',
     route: UserRoutes,
+  },
+  {
+    path: '/courses',
+    route: skillCourseRoute,
+  },
+  {
+    path: '/Academic-courses',
+    route: AcademicCourseRoute,
   },
   {
     path: '/toper',
@@ -33,16 +43,16 @@ const moduleRoutes = [
     route: NoiceRoutes,
   },
   {
-    path: '/courses',
-    route: skillCourseRoute,
-  },
-  {
-    path: '/Academic-courses',
-    route: AcademicCourseRoute,
+    path: '/review',
+    route: ReviewRoutes,
   },
   {
     path: '/enroll',
     route: EnrollStudentRouter,
+  },
+  {
+    path: '/attachments',
+    route: AttachmentRoutes,
   },
 ];
 

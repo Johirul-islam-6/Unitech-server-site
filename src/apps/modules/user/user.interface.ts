@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 export type IUser = {
   name: string;
   studentRoll: string;
+  blodGroup: string;
   institute: string;
   department: string;
   phone: string;
@@ -18,16 +19,6 @@ export type IUser = {
   joinginDate: string;
 };
 
-// "name": "Md. Johirul Islam",
-//     "roll": "574206",
-//     "institute": "Mymensingh Polytechnic Institute",
-//     "department": "Computer Science and Technology",
-//     "address": "Maskanda, Mymensingh, Bangladesh",
-//     "phone": "01824842336",
-//     "email": "r@gmail.com",
-//     "password": "12456",
-//     "gender": "male"
-
 //Created return value
 export type IUserCreated = {
   accessToken?: string;
@@ -36,6 +27,7 @@ export type IUserCreated = {
   name: string;
   studentRoll: string;
   institute: string;
+  blodGroup: string;
   department: string;
   phone: string;
   gender: string;
@@ -52,6 +44,7 @@ export type IUserLogin = {
   id?: string;
   name: string;
   studentRoll: string;
+  blodGroup: string;
   institute: string;
   department: string;
   phone: string;

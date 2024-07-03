@@ -13,6 +13,7 @@ const file_routes_4 = require("../modules/toperlist/file.routes");
 const file_routes_5 = require("../modules/paymentInfo/file.routes");
 const siteView_routes_1 = require("../modules/totalsiteview/siteView.routes");
 const enroll_stunent_routes_1 = require("../modules/enrollStudent/enroll_stunent.routes");
+const file_routes_6 = require("../modules/review/file.routes");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -22,6 +23,14 @@ const moduleRoutes = [
     {
         path: '/users',
         route: user_routes_1.UserRoutes,
+    },
+    {
+        path: '/courses',
+        route: file_routes_1.skillCourseRoute,
+    },
+    {
+        path: '/Academic-courses',
+        route: file_routes_3.AcademicCourseRoute,
     },
     {
         path: '/toper',
@@ -36,12 +45,8 @@ const moduleRoutes = [
         route: file_routes_2.NoiceRoutes,
     },
     {
-        path: '/courses',
-        route: file_routes_1.skillCourseRoute,
-    },
-    {
-        path: '/Academic-courses',
-        route: file_routes_3.AcademicCourseRoute,
+        path: '/review',
+        route: file_routes_6.ReviewRoutes,
     },
     {
         path: '/enroll',

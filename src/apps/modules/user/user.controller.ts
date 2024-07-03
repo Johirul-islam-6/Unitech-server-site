@@ -26,7 +26,7 @@ const userCreated = catchAsync(async (req: Request, res: Response) => {
     };
 
     res.cookie('refreshToken', refreshToken, cookiesOption);
-    nodeCacsh.del('profile');
+
     sendResponse<IUserCreated>(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -91,15 +91,10 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
   // querypick is costom funtcion
   const paginationOption = queryPick(req.query, pagintionField);
 
-  //--------- get data load first -----------
-  let result: any;
-  const cachedValue = nodeCacsh.get<string>('profile');
-  if (cachedValue !== undefined) {
-    result = JSON.parse(cachedValue);
-  } else {
-    result = await UserServices.getSearchingUser(filtering, paginationOption);
-    nodeCacsh.set('profile', JSON.stringify(result));
-  }
+  const result = await UserServices.getSearchingUser(
+    filtering,
+    paginationOption
+  );
 
   sendResponse<ISearchUser[]>(res, {
     statusCode: httpStatus.OK,

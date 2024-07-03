@@ -8,7 +8,6 @@ import { Secret } from 'jsonwebtoken';
 import config from '../../../config';
 import { jwtHelpers } from '../../../helpers/jwtHelpers';
 import { IPaginationOpton } from '../../../interfaces/pagination';
-
 import { HelperPagination } from '../../../helpers/paginationHelper';
 import { SortOrder } from 'mongoose';
 import { userSearchableFields } from './user.constant';
@@ -24,6 +23,7 @@ const createdUser = async (user: IUser): Promise<IUserLogin | null> => {
     name,
     phone,
     ruler,
+    blodGroup,
     gender,
     studentRoll,
     institute,
@@ -52,17 +52,11 @@ const createdUser = async (user: IUser): Promise<IUserLogin | null> => {
     config.jwt.refresh_expires_in as string
   );
 
-  // Attach the tokens to the user object
-  // createAuser.accessToken = accessToken;
-  // createAuser.refreshToken = refreshToken;
-
-  // console.log(createAuser?.accessToken, "accesstoken")
-  // console.log(createAuser, "created")
-
   return {
     accessToken,
     refreshToken,
     email,
+    blodGroup,
     id,
     name,
     phone,
@@ -105,6 +99,7 @@ const loginUser = async (payload: IUser): Promise<IUserLogin | null> => {
     institute,
     department,
     address,
+    blodGroup,
     joinginDate,
   } = studentInfo || {};
 
@@ -126,6 +121,7 @@ const loginUser = async (payload: IUser): Promise<IUserLogin | null> => {
     accessToken: accessToken ?? '',
     refreshToken: refreshToken ?? '',
     email,
+    blodGroup: blodGroup ?? '',
     id: id ?? '',
     name: name ?? '',
     phone: phone ?? '',
@@ -141,18 +137,18 @@ const loginUser = async (payload: IUser): Promise<IUserLogin | null> => {
 
 // get Searching Student
 const getSearchingUser = async (
-  filtering: any,
+  filtering: Record<string, any>,
   paginationOption: IPaginationOpton
 ): Promise<IGenaricRespons<ISearchUser[]> | null> => {
   const { searchTerm, ...filtersData } = filtering;
 
-  // this variable find database collection/ model querys
-  const andConditions = [];
+  // Build the query conditions for the database
+  const andConditions: Record<string, any>[] = [];
 
-  // This is Searching Condition
+  // Add search condition
   if (searchTerm) {
     andConditions.push({
-      $or: userSearchableFields.map(field => ({
+      $or: userSearchableFields?.map(field => ({
         [field]: {
           $regex: searchTerm,
           $options: 'i',
@@ -161,7 +157,7 @@ const getSearchingUser = async (
     });
   }
 
-  //This is Filering condition
+  // Add filtering conditions
   if (Object.keys(filtersData).length) {
     andConditions.push({
       $and: Object.entries(filtersData).map(([field, value]) => ({
@@ -170,29 +166,30 @@ const getSearchingUser = async (
     });
   }
 
-  //This is Pagination sorting limit etc condition
+  // Destructure pagination options
   const { page, limit, skip, sortBy, sortOrder } =
     HelperPagination.calculationPagination(paginationOption);
 
-  // sort conditions base get all data
-  const sortConditions: { [key: string]: SortOrder } = {};
+  // Define sort conditions
+  const sortConditions: Record<string, SortOrder> = {};
   if (sortBy && sortOrder) {
     sortConditions[sortBy] = sortOrder;
   }
 
-  // condition display data show
-  const whereConditons =
+  // Combine all conditions
+  const whereConditions =
     andConditions.length > 0 ? { $and: andConditions } : {};
 
-  // get to the all data in mongoDb model/collection .
-  const result = await User.find(whereConditons)
+  // Fetch the data from MongoDB
+  const result = await User.find(whereConditions)
     .sort(sortConditions)
     .skip(skip)
     .limit(limit);
 
-  //total modal/collections Number count
+  // Count the total number of documents
   const total = await User.countDocuments();
 
+  // Return the response with metadata and data
   return {
     meta: {
       page,
