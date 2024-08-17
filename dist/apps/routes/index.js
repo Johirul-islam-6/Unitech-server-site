@@ -14,6 +14,7 @@ const file_routes_5 = require("../modules/paymentInfo/file.routes");
 const siteView_routes_1 = require("../modules/totalsiteview/siteView.routes");
 const enroll_stunent_routes_1 = require("../modules/enrollStudent/enroll_stunent.routes");
 const file_routes_6 = require("../modules/review/file.routes");
+const file_routes_7 = require("../modules/attachmentBooking/file.routes");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -51,6 +52,10 @@ const moduleRoutes = [
     {
         path: '/enroll',
         route: enroll_stunent_routes_1.EnrollStudentRouter,
+    },
+    {
+        path: '/attachments',
+        route: file_routes_7.AttachmentRoutes,
     },
 ];
 moduleRoutes.forEach(route => router.use(route.path, route.route));
